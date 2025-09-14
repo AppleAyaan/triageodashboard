@@ -6,12 +6,13 @@ function App() {
   const [alerts, setAlerts] = useState([]);
   const [filter, setFilter] = useState("All");
 
+  // SSE for real-time updates
   useEffect(() => {
     const evtSource = new EventSource("http://localhost:5001/stream");
     evtSource.onmessage = (e) => {
       try {
         const data = JSON.parse(e.data.replace(/'/g, '"'));
-        setAlerts((prev) => [data, ...prev]);
+        setAlerts((prev) => [...prev, data]); // append new alert
       } catch (err) {
         console.error("Parse error:", err, e.data);
       }
@@ -19,11 +20,13 @@ function App() {
     return () => evtSource.close();
   }, []);
 
+  // filter alerts based on selected severity
   const filteredAlerts =
     filter === "All"
       ? alerts
-      : alerts.filter((alert) => alert.severity === filter);
+      : alerts.filter((alert) => alert.severity?.toLowerCase() === filter.toLowerCase());
 
+  // count number of alerts per severity
   const severityCounts = {
     Critical: 0,
     High: 0,
@@ -32,9 +35,8 @@ function App() {
   };
 
   alerts.forEach(alert => {
-    if (alert.severity && severityCounts.hasOwnProperty(alert.severity)) {
-      severityCounts[alert.severity]++;
-    }
+    const sev = alert.severity ? alert.severity.charAt(0).toUpperCase() + alert.severity.slice(1).toLowerCase() : "";
+    if (severityCounts.hasOwnProperty(sev)) severityCounts[sev]++;
   });
 
   const hasData = Object.values(severityCounts).some(value => value > 0);
@@ -53,10 +55,10 @@ function App() {
         Critical: "#ff0000",
         High: "#ffa500",
         Medium: "#ffff00",
-        Low: "#00ff00"
+        Low: "#00ff00",
       }
     : {
-        Empty: "#d3d3d3" // light gray for empty slice
+        Empty: "#d3d3d3",
       };
 
   return (
@@ -84,7 +86,7 @@ function App() {
         padding: "10px 20px", 
         display: "flex", 
         alignItems: "center", 
-        position: "relative", // Remove justifyContent
+        position: "relative",
         boxShadow: "0 4px 30px rgba(255, 255, 255, 0.1)"
       }}>
         <h1 style={{ 
@@ -101,7 +103,7 @@ function App() {
           alignItems: "center", 
           fontWeight: "bold", 
           color: "#b0b0b0",
-          marginLeft: "auto" // Added to push to right
+          marginLeft: "auto"
         }}>
           <span style={{ color: "limegreen", marginRight: "4px" }}>🟢</span> Connected
         </div>
@@ -160,7 +162,6 @@ function App() {
                   e.currentTarget.style.color = "#000";
                   e.currentTarget.style.boxShadow = "0 0 18px 3px rgba(0,255,0,0.7)";
                 } else {
-                  // "All"
                   e.currentTarget.style.backgroundColor = "rgba(255, 255, 255, 0.2)";
                   e.currentTarget.style.color = "#000";
                   e.currentTarget.style.boxShadow = "0 4px 15px rgba(255, 255, 255, 0.3)";
@@ -202,7 +203,7 @@ function App() {
         }}>
           <div style={{
             width: 320,
-            backgroundColor: "rgba(42, 42, 42, 0.8)", // dark gray with transparency for glassy effect
+            backgroundColor: "rgba(42, 42, 42, 0.8)", 
             backdropFilter: "blur(10px)",
             borderRadius: "12px",
             boxShadow: "0 8px 32px 0 rgba(255, 255, 255, 0.1)",
@@ -225,7 +226,7 @@ function App() {
                 outerRadius={100}
                 fill="#8884d8"
                 label={{
-                  fill: "#d3d3d3", // light gray labels
+                  fill: "#d3d3d3",
                   fontWeight: "bold",
                 }}
               >
@@ -263,7 +264,7 @@ function App() {
         </main>
       </div>
     </div>
-  );
+    );
 }
 
 export default App;
