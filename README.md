@@ -1,4 +1,4 @@
-# 🔐 Triageo Dashboard
+# 🔐 Triageo Web Dashboard
 
 Live dashboard for monitoring security alerts from Triageo.
 
